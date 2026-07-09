@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Информация о сайте</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        label { 
+            display: block; 
+            text-align: left; 
+            margin: 10px 0 8px; 
+            font-weight: bold; 
+        }
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            font-size: 16px; 
+            border-radius: 8px; 
+            border: none; 
+            margin-bottom: 15px; 
+        }
+        button { 
+            background: #ff6b6b; 
+            color: white; 
+            border: none; 
+            padding: 15px 30px; 
+            font-size: 16px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+        }
+        button:hover {
+            background: #ff5252;
+        }
+        #result { 
+            margin-top: 20px; 
+            text-align: left; 
+            background: rgba(0,0,0,0.2); 
+            padding: 15px; 
+            border-radius: 10px; 
+            display: none; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Информация о сайте</h1>
+        <p><strong>Заполни ссылкой — получи информацию</strong></p>
+        
+        <label for="urlInput">🔗 Введите ссылку на сайт:</label>
+        <input type="url" id="urlInput" placeholder="https://example.com" />
+        <button onclick="sendToGo()">Получить информацию</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function sendToGo() {
+            const urlInput = document.getElementById('urlInput').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!urlInput) {
+                alert("Введите ссылку!");
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<p>⏳ Отправка ссылки в Go-сервер...</p>';
+
+            // =====================================================
+            // ЗДЕСЬ ПРОИСХОДИТ ОТПРАВКА ССЫЛКИ В GO-ПРОГРАММУ
+            // =====================================================
+            try {
+                const response = await fetch('http://localhost:8080/get-info', {
+                    method: 'POST',                    // Метод запроса
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ url: urlInput })  // ← Ссылка отправляется сюда
+                });
+
+                const data = await response.json();
+            // =====================================================
+
+                if (data.error) {
+                    resultDiv.innerHTML = `<p style="color:red;">Ошибка: ${data.error}</p>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h2>${data.title || 'Без названия'}</h2>
+                        <p><strong>URL:</strong> ${data.url}</p>
+                        ${data.description ? `<p><strong>Описание:</strong><br>${data.description}</p>` : ''}
+                    `;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<p style="color:red;">Не удалось подключиться к Go-серверу.<br>Убедись, что сервер запущен!</p>`;
+            }
+        }
+
+        // Отправка по нажатию Enter
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendToGo();
+            }
+        });
+    </script>
+</body>
+</html>
